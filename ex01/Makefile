@@ -29,10 +29,12 @@ unit:
 clean:
 	rm -rf $(NAME)
 	@printf "$(YELLOW)Executable removed.$(RESET)\n"
+fclean: clean
+
 valgrind: | $(NAME)
 	@printf "$(CURSIVE)Running valgrind...$(RESET)\n"
 	valgrind --leak-check=full ./$(NAME)
 
 re: clean all
 
-.PHONY: all clean re
+.PHONY: all clean fclean re
