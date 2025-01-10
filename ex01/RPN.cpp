@@ -4,6 +4,22 @@
 #include <cstdlib>
 
 namespace RPN {
+
+    RPNException::RPNException(const char* message) : _msg(message) {}
+    RPNException::~RPNException() throw() {}
+    const char* RPNException::what() const throw()  { return _msg; }
+
+    DivisionByZeroError::DivisionByZeroError() : RPNException("Division by zero") {}
+    DivisionByZeroError::~DivisionByZeroError() throw() {}
+    StackUnderflowError::StackUnderflowError() : RPNException("Not enough operands") {}
+    StackUnderflowError::~StackUnderflowError() throw() {}
+    InvalidTokenError::InvalidTokenError(const std::string& token) 
+        : RPNException("Invalid token encountered"), _token(token) {}
+    const std::string& InvalidTokenError::token() const { return _token; }
+    InvalidTokenError::~InvalidTokenError() throw () {}
+    ExtraOperandsError::ExtraOperandsError() : RPNException("Extra operands left on stack") {}
+    ExtraOperandsError::~ExtraOperandsError() throw() {}
+    
     namespace {
         std::stack<int> _nsInternalS;
 
