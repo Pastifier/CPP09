@@ -95,7 +95,7 @@ void test_edge_cases() {
 
 #define PRINT(X) std::cout << X
 #define ERRLOG(X) std::cerr << X
-#define FLUSH() std::cout << std::endl
+#define __FLUSH() ; std::cout << std::endl
 
 int main(int argc, char *argv[]) {
     try {
@@ -106,24 +106,23 @@ int main(int argc, char *argv[]) {
         test_error_handling();
         test_edge_cases();
         
-        PRINT("\nAll tests passed successfully!"); FLUSH();
+        PRINT("\nAll tests passed successfully!") __FLUSH();
 #else
         if (argc != 2) {
             ERRLOG("Usage:\n");
-            ERRLOG("\tRPN <expression-string>"); FLUSH();
+            ERRLOG("\tRPN <expression-string>") __FLUSH();
             return 2;
         }
 
-        std::string expr(argv[1]);
-        RPN::processExpression(expr);
-        PRINT(RPN::getResult()); FLUSH();
+        RPN::processExpression(argv[1]);
+        PRINT(RPN::getResult()); __FLUSH();
 #endif
         return 0;
     } catch (const std::exception& e) {
-        ERRLOG("Unexpected error: " << e.what()); FLUSH();
+        ERRLOG("Unexpected error: " << e.what()) __FLUSH();
         return 1;
     } catch (...) {
-        ERRLOG("Unknown error occurred"); FLUSH();
+        ERRLOG("Unknown error occurred") __FLUSH();
         return 1;
     }
 }
