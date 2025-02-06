@@ -23,26 +23,22 @@ namespace RPN {
     namespace {
         std::stack<int> _nsInternalS;
 
-        void clearStack() {
+        void __clearStack() {
             while (!_nsInternalS.empty()) {
                 _nsInternalS.pop();
             }
         }
 
-        void ensureOperands() {
+        void __ensureOperands() {
             if (_nsInternalS.size() < 2) {
                 throw StackUnderflowError();
             }
         }
 
-        std::pair<int, int> popOperands() {
-            ensureOperands();
-            int b = _nsInternalS.top();
+        int __popOperand() {
+            int ret = _nsInternalS.top();
             _nsInternalS.pop();
-            int a = _nsInternalS.top();
-            _nsInternalS.pop();
-            std::pair<int, int> result(a, b);
-            return result;
+            return ret;
         }
 
         int __iadd(int a, int b) { return a + b; }
@@ -53,12 +49,12 @@ namespace RPN {
             return a / b;
         }
 
-        bool isOperator(char c) {
+        bool __isOperator(char c) {
             return (c == '+' || c == '-' ||
                     c == '*' || c == '/');
         }
 
-        bool isValidNumber(const std::string& token) {
+        bool __isValidNumber(const std::string& token) {
             if (token.empty()) return false;
             
             const char* str = token.c_str();
@@ -69,7 +65,7 @@ namespace RPN {
     }
 
     void processExpression(std::string const & expr) {
-        clearStack();
+        __clearStack();
         const char *left = expr.c_str();
         const char *right;
 
@@ -90,12 +86,13 @@ namespace RPN {
 
             if (token.empty()) continue;
 
-            if (isValidNumber(token)) {
+            if (__isValidNumber(token)) {
                 _nsInternalS.push(std::atoi(token.c_str()));
-            } else if (token.length() == 1 && isOperator(token[0])) {
-                std::pair<int, int> operands = popOperands();
-                int a = operands.first;
-                int b = operands.second;
+            } else if (token.length() == 1 && __isOperator(token[0])) {
+                // std::pair<int, int> operands = popOperands();
+                __ensureOperands();
+                int b = __popOperand();
+                int a = __popOperand();
                 
                 switch (token[0]) {
                 case '+': _nsInternalS.push(__iadd(a, b)); break;
