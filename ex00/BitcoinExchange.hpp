@@ -15,7 +15,7 @@ private:
 
     bool isValidDate(const std::string& date);
 
-    bool isValidValue(const std::string& value, double& result);
+    bool isValidValue(const std::string& value, double& result, int& errorCode);
 
 public:
     bool loadDatabase(const std::string& filename);
