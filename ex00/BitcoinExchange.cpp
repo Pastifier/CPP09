@@ -237,8 +237,6 @@ void BitcoinExchange::processInput(const std::string& filename) {
                 case LEADING_ZEROES:
                     std::cout << "Error: bad input => " << value << std::endl;
                     break;
-                default:
-                    std::cout << "Error: unknown error." << std::endl;
             }
             continue;
         }
