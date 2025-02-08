@@ -1,6 +1,7 @@
 #include "RPN.hpp"
 #include <stack>
 #include <cstring>
+#include <sstream>
 #include <cstdlib>
 
 namespace RPN {
@@ -65,46 +66,31 @@ namespace RPN {
     }
 
     void processExpression(std::string const & expr) {
-        __clearStack();
-        const char *left = expr.c_str();
-        const char *right;
+    __clearStack();
+    std::istringstream iss(expr);
+    std::string token;
 
-        while (left && *left) {
-            while (*left == ' ') left++;
-            if (!*left) break;
+    while (iss >> token) {
+        if (token.empty()) continue;
 
-            right = std::strpbrk(left, " ");
-
-            std::string token;
-            if (right) {
-                token = std::string(left, right - left);
-                left = right + 1;
-            } else {
-                token = std::string(left);
-                left = NULL;
+        if (__isValidNumber(token)) {
+            _nsInternalS.push(std::atoi(token.c_str()));
+        } else if (token.length() == 1 && __isOperator(token[0])) {
+            __ensureOperands();
+            int b = __popOperand();
+            int a = __popOperand();
+            
+            switch (token[0]) {
+            case '+': _nsInternalS.push(__iadd(a, b)); break;
+            case '-': _nsInternalS.push(__isub(a, b)); break;
+            case '*': _nsInternalS.push(__imul(a, b)); break;
+            case '/': _nsInternalS.push(__idiv(a, b)); break;
             }
-
-            if (token.empty()) continue;
-
-            if (__isValidNumber(token)) {
-                _nsInternalS.push(std::atoi(token.c_str()));
-            } else if (token.length() == 1 && __isOperator(token[0])) {
-                // std::pair<int, int> operands = popOperands();
-                __ensureOperands();
-                int b = __popOperand();
-                int a = __popOperand();
-                
-                switch (token[0]) {
-                case '+': _nsInternalS.push(__iadd(a, b)); break;
-                case '-': _nsInternalS.push(__isub(a, b)); break;
-                case '*': _nsInternalS.push(__imul(a, b)); break;
-                case '/': _nsInternalS.push(__idiv(a, b)); break;
-                }
-            } else {
-                throw InvalidTokenError(token);
-            }
+        } else {
+            throw InvalidTokenError(token);
         }
     }
+}
 
     int getResult() {
         if (_nsInternalS.empty()) {
