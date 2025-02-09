@@ -5,7 +5,7 @@
 #include <sstream>
 #include <cstdlib>
 #include <algorithm>
-#include <cassert>
+#include <exception>
 
 namespace PmergeMe {
     std::vector<int> _nsInternalV;
@@ -110,13 +110,18 @@ namespace PmergeMe {
         _nsInternalL.clear();
     }
 
+    void __myAssert(bool expr_) {
+        if (!expr_)
+            throw std::runtime_error("Check line: ");
+    }
+
     bool testValidInputs(void) {
         __setUp();
         const char* input[] = {"1", "2", "3", NULL};
         bool result = initInternals(input);
-        assert(result == true);
-        assert(_nsInternalV.size() == 3);
-        assert(_nsInternalL.size() == 3);
+        __myAssert(result == true);
+        __myAssert(_nsInternalV.size() == 3);
+        __myAssert(_nsInternalL.size() == 3);
         __tearDown();
         return true;
     }
@@ -125,9 +130,9 @@ namespace PmergeMe {
         __setUp();
         const char* input[] = {"1", "", "3", NULL};
         bool result = initInternals(input);
-        assert(result == true);
-        assert(_nsInternalV.size() == 2);
-        assert(_nsInternalL.size() == 2);
+        __myAssert(result == true);
+        __myAssert(_nsInternalV.size() == 2);
+        __myAssert(_nsInternalL.size() == 2);
         __tearDown();
         return true;
     }
@@ -136,9 +141,9 @@ namespace PmergeMe {
         __setUp();
         const char* input[] = {"1", "2a", "3", NULL};
         bool result = initInternals(input);
-        assert(result == false);
-        assert(_nsInternalV.size() == 1);
-        assert(_nsInternalL.size() == 1);
+        __myAssert(result == false);
+        __myAssert(_nsInternalV.size() == 1);
+        __myAssert(_nsInternalL.size() == 1);
         __tearDown();
         return true;
     }
@@ -147,9 +152,9 @@ namespace PmergeMe {
         __setUp();
         const char* input[] = {"1", "-2", "3", NULL};
         bool result = initInternals(input);
-        assert(result == false);
-        assert(_nsInternalV.size() == 1);
-        assert(_nsInternalL.size() == 1);
+        __myAssert(result == false);
+        __myAssert(_nsInternalV.size() == 1);
+        __myAssert(_nsInternalL.size() == 1);
         __tearDown();
         return true;
     }
@@ -158,9 +163,9 @@ namespace PmergeMe {
         __setUp();
         const char* input[] = {"1", "2", "2", NULL};
         bool result = initInternals(input);
-        assert(result == false);
-        assert(_nsInternalV.size() == 2);
-        assert(_nsInternalL.size() == 2);
+        __myAssert(result == false);
+        __myAssert(_nsInternalV.size() == 2);
+        __myAssert(_nsInternalL.size() == 2);
         __tearDown();
         return true;
     }
@@ -169,9 +174,9 @@ namespace PmergeMe {
         __setUp();
         const char* input[] = {"1", " 2 ", "3", NULL};
         bool result = initInternals(input);
-        assert(result == true);
-        assert(_nsInternalV.size() == 3);
-        assert(_nsInternalL.size() == 3);
+        __myAssert(result == true);
+        __myAssert(_nsInternalV.size() == 3);
+        __myAssert(_nsInternalL.size() == 3);
         __tearDown();
         return true;
     }
@@ -180,9 +185,9 @@ namespace PmergeMe {
         __setUp();
         const char* input[] = {"2147483647", "1", "2", NULL};
         bool result = initInternals(input);
-        assert(result == true);
-        assert(_nsInternalV.size() == 3);
-        assert(_nsInternalL.size() == 3);
+        __myAssert(result == true);
+        __myAssert(_nsInternalV.size() == 3);
+        __myAssert(_nsInternalL.size() == 3);
         __tearDown();
         return true;
     }
@@ -191,15 +196,15 @@ namespace PmergeMe {
         __setUp();
         const char* input[] = {"5", "3", "1", NULL};
         bool result = initInternals(input);
-        assert(result == true);
-        assert(_nsInternalV[0] == 5);
-        assert(_nsInternalV[1] == 3);
-        assert(_nsInternalV[2] == 1);
+        __myAssert(result == true);
+        __myAssert(_nsInternalV[0] == 5);
+        __myAssert(_nsInternalV[1] == 3);
+        __myAssert(_nsInternalV[2] == 1);
         
         std::vector<int> listValues(_nsInternalL.begin(), _nsInternalL.end());
-        assert(listValues[0] == 5);
-        assert(listValues[1] == 3);
-        assert(listValues[2] == 1);
+        __myAssert(listValues[0] == 5);
+        __myAssert(listValues[1] == 3);
+        __myAssert(listValues[2] == 1);
         __tearDown();
         return true;
     }
@@ -208,9 +213,9 @@ namespace PmergeMe {
         __setUp();
         const char* input[] = {"1", "abc", "3", "-4", "5", NULL};
         bool result = initInternals(input);
-        assert(result == false);
-        assert(_nsInternalV.size() == 1);
-        assert(_nsInternalL.size() == 1);
+        __myAssert(result == false);
+        __myAssert(_nsInternalV.size() == 1);
+        __myAssert(_nsInternalL.size() == 1);
         __tearDown();
         return true;
     }
@@ -235,5 +240,4 @@ namespace PmergeMe {
         
         return allPassed;
     }
-
 }
