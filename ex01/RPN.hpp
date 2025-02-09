@@ -27,11 +27,9 @@ namespace RPN {
 
     class InvalidTokenError : public RPNException {
     public:
-        explicit InvalidTokenError(const std::string& token);
-        const std::string& token() const;
+        InvalidTokenError();
+        // const std::string& token() const;
         virtual ~InvalidTokenError() throw();
-    private:
-        std::string _token;
     };
 
     class ExtraOperandsError : public RPNException {
