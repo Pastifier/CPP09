@@ -2,10 +2,15 @@
 #include <cassert>
 #include <iostream>
 
+void __myAssert(bool aExpr_) {
+    if (!aExpr_)
+        throw std::runtime_error("Failed a test case.");
+}
+
 void assertExpression(const std::string& expr, int expected) {
     RPN::processExpression(expr);
     int result = RPN::getResult();
-    assert(result == expected);
+    __myAssert(result == expected);
 }
 
 void test_single_operations() {
@@ -36,7 +41,7 @@ void test_error_handling() {
     // Division by zero
     try {
         RPN::processExpression("5 0 /");
-        assert(false && "Should have thrown DivisionByZeroError");
+        __myAssert(false && "Should have thrown DivisionByZeroError");
     } catch (const RPN::DivisionByZeroError&) {
         std::cout << "Division by zero caught correctly\n";
     }
@@ -44,7 +49,7 @@ void test_error_handling() {
     // Stack underflow - not enough operands
     try {
         RPN::processExpression("5 +");
-        assert(false && "Should have thrown StackUnderflowError");
+        __myAssert(false && "Should have thrown StackUnderflowError");
     } catch (const RPN::StackUnderflowError&) {
         std::cout << "Stack underflow caught correctly\n";
     }
@@ -52,7 +57,7 @@ void test_error_handling() {
     // Invalid token
     try {
         RPN::processExpression("5 x 4 +");
-        assert(false && "Should have thrown InvalidTokenError");
+        __myAssert(false && "Should have thrown InvalidTokenError");
     } catch (const RPN::InvalidTokenError& e) {
         std::cout << "Invalid token caught correctly\n";
     }
@@ -61,7 +66,7 @@ void test_error_handling() {
     try {
         RPN::processExpression("5 4 3 +");
         RPN::getResult();
-        assert(false && "Should have thrown ExtraOperandsError");
+        __myAssert(false && "Should have thrown ExtraOperandsError");
     } catch (const RPN::ExtraOperandsError&) {
         std::cout << "Extra operands caught correctly\n";
     }
@@ -76,7 +81,7 @@ void test_edge_cases() {
     try {
         RPN::processExpression("");
         RPN::getResult();
-        assert(false && "Should have thrown StackUnderflowError");
+        __myAssert(false && "Should have thrown StackUnderflowError");
     } catch (const RPN::StackUnderflowError&) {
         std::cout << "Empty expression caught correctly\n";
     }
