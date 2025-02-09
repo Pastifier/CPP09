@@ -14,9 +14,9 @@ namespace RPN {
     DivisionByZeroError::~DivisionByZeroError() throw() {}
     StackUnderflowError::StackUnderflowError() : RPNException("Not enough operands") {}
     StackUnderflowError::~StackUnderflowError() throw() {}
-    InvalidTokenError::InvalidTokenError(const std::string& token) 
-        : RPNException("Invalid token encountered"), _token(token) {}
-    const std::string& InvalidTokenError::token() const { return _token; }
+    InvalidTokenError::InvalidTokenError() 
+        : RPNException("Invalid token encountered") {}
+    // const std::string& InvalidTokenError::token() const { return _token; }
     InvalidTokenError::~InvalidTokenError() throw () {}
     ExtraOperandsError::ExtraOperandsError() : RPNException("Extra operands left on stack") {}
     ExtraOperandsError::~ExtraOperandsError() throw() {}
@@ -55,42 +55,37 @@ namespace RPN {
                     c == '*' || c == '/');
         }
 
-        bool __isValidNumber(const std::string& token) {
-            if (token.empty()) return false;
-            
-            const char* str = token.c_str();
-            char* endptr;
-            std::strtol(str, &endptr, 10);
-            return (*endptr == '\0');
-        }
     }
 
     void processExpression(std::string const & expr) {
-    __clearStack();
-    std::istringstream iss(expr);
-    std::string token;
+        __clearStack();
+        std::istringstream iss(expr);
+        std::string token;
 
-    while (iss >> token) {
-        if (token.empty()) continue;
+        while (iss >> token) {
+            if (token.empty()) continue;
 
-        if (__isValidNumber(token)) {
-            _nsInternalS.push(std::atoi(token.c_str()));
-        } else if (token.length() == 1 && __isOperator(token[0])) {
-            __ensureOperands();
-            int b = __popOperand();
-            int a = __popOperand();
-            
-            switch (token[0]) {
-            case '+': _nsInternalS.push(__iadd(a, b)); break;
-            case '-': _nsInternalS.push(__isub(a, b)); break;
-            case '*': _nsInternalS.push(__imul(a, b)); break;
-            case '/': _nsInternalS.push(__idiv(a, b)); break;
+            if (token.length() == 1 && __isOperator(token[0])) {
+                __ensureOperands();
+                int b = __popOperand();
+                int a = __popOperand();
+                
+                switch (token[0]) {
+                case '+': _nsInternalS.push(__iadd(a, b)); break;
+                case '-': _nsInternalS.push(__isub(a, b)); break;
+                case '*': _nsInternalS.push(__imul(a, b)); break;
+                case '/': _nsInternalS.push(__idiv(a, b)); break;
+                }
+            } else {
+                std::istringstream numStream(token);
+                int value;
+                if (!(numStream >> value) || !(numStream >> std::ws).eof()) {
+                    throw InvalidTokenError();
+                }
+                _nsInternalS.push(value);
             }
-        } else {
-            throw InvalidTokenError(token);
         }
     }
-}
 
     int getResult() {
         if (_nsInternalS.empty()) {
