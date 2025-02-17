@@ -11,6 +11,9 @@
 #endif
 
 #include <iostream>
+#include <vector>
+#include <list>
+#include <algorithm>
 
 #define PRINT(X) std::cout << X
 #define __FLUSH(X) ;std::cout << std::endl
@@ -18,13 +21,14 @@
 #define ERRLOG(X) std::cerr << X
 #define __ERRFLUSH(X) ;std::cerr << std::endl
 
-#ifndef IntVector
-#   define IntVector std::vector<int>
-#endif // !IntVector
+typedef std::list<int> IntList;
+typedef std::vector<int> IntVector;
 
-#ifndef IntList
-#   define IntList std::list<int>
-#endif // !IntList
+typedef std::pair<IntVector, IntVector> IntVectorPair;
+
+#define __PMM_SWAP_INT_PAIR_VALUES(X) X.first^=X.second;X.first^=X.second;X.first^=X.second
+
+#define _PMM_PARSING_ONLY
 
 namespace PmergeMe {
     bool initInternals(const char *numList[]) _PMM_NOEXCEPT;
@@ -42,5 +46,7 @@ namespace PmergeMe {
     bool testOrderPreservation(void);
     bool testMixedValidInvalid(void);
 
-    bool runAllTests(void);
+    bool runAllTests(void) _PMM_PARSING_ONLY;
+
+    void mergeInsertionSortV(void);
 }
