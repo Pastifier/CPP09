@@ -11,11 +11,18 @@ int main(int argc, char *argv[]) {
 		ERRLOG("Usage:\n\tRPN x1 x2 ... xn") __ERRFLUSH();
 		return 2;
 	}
+
 	const char **numList = const_cast<const char**>(argv + 1);
+
 	if (!PmergeMe::initInternals(numList))
 		return 1;
-	PmergeMe::printInternalV();
-	PmergeMe::printInternalL();
+	
+	PRINT("Before: "); PmergeMe::printInternalV();
+
+	PmergeMe::mergeInsertionSortV();
+
+	PRINT("After (vector): "); PmergeMe::printInternalV();
+	// PRINT("After (list): "); PmergeMe::printInternalL();
 #endif
 	return 0;
 }
