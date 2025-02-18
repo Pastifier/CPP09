@@ -3,7 +3,7 @@ NAME := PmergeMe
 
 # Necessities
 CXX := c++
-CXXFLAGS := -Wall -Wextra -Werror -std=c++98
+CXXFLAGS := -Wall -Wextra -Werror -std=c++98 -g3
 
 #Colors:
 GREEN		=	\e[92;5;118m
