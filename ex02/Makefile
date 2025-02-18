@@ -26,6 +26,9 @@ $(NAME): $(SRC) $(INCLUDES)
 unit:
 	$(MAKE) all CXXFLAGS="$(CXXFLAGS) -D _PMM_UNIT_TEST"
 
+assert:
+	$(MAKE) all CXXFLAGS="$(CXXFLAGS) -D _PMM_ASSERT_TEST"
+
 clean:
 	rm -rf $(NAME)
 	@printf "$(YELLOW)Executable removed.$(RESET)\n"
