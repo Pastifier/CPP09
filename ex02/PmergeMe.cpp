@@ -9,6 +9,9 @@
 #include <cassert>
 
 namespace PmergeMe {
+    clock_t _nsExternalTicksElapsedV;
+    clock_t _nsExternalTicksElapsedL;
+
     namespace {
         IntVector _nsInternalV;
         IntList _nsInternalL;
@@ -331,6 +334,7 @@ namespace PmergeMe {
 
     // 0 1 2 3 4    0 1 2 3 4
     // y z w x a    l o p q r
+
     IntVector __extractCorrespondingLosers(const IntVector &winners, const IntVector &sortedWinners, const IntVector &losers) {
         // winners: original winners in pairing order.
         // sortedWinners: winners sorted recursively.
@@ -347,6 +351,12 @@ namespace PmergeMe {
         if (losers.size() > winners.size()) {
             pendChain.push_back(losers.back());
         }
+
+#if defined(_PMM_ASSERT_TEST)
+        for (size_t i = 0; i < sortedWinners.size(); ++i) {
+            __myAssert(sortedWinners[i] >= pendChain[i]);
+        }
+#endif
 
         return pendChain;
     }
@@ -378,17 +388,12 @@ namespace PmergeMe {
         IntVector mainChain = sortedWinners;
         
         IntVector pendChain = __extractCorrespondingLosers(winners, sortedWinners, losers);
-        IntVector sortedPartners = __extractCorrespondingLosers(winners, sortedWinners, partnerValue);
+        // IntVector sortedPartners = __extractCorrespondingLosers(winners, sortedWinners, partnerValue);
     
         if (!pendChain.empty()) {
             int firstLoser = pendChain[0];
-            int firstPartner = sortedPartners[0];
 
-            IntVector::iterator it = std::find(mainChain.begin(), mainChain.end(), firstPartner);
-            size_t partnerPos = it - mainChain.begin();
-
-            size_t pos = __binarySearchInsertionPositionInRange(mainChain, firstLoser, 0, partnerPos);
-            mainChain.insert(mainChain.begin() + pos, firstLoser);
+            mainChain.insert(mainChain.begin(), firstLoser);
         }
     
         size_t pendingCount = pendChain.size();
@@ -400,7 +405,7 @@ namespace PmergeMe {
                 if (idx == 0) continue;
                 
                 int loserVal = pendChain[idx];
-                int partner = sortedPartners[idx];
+                int partner = sortedWinners[idx];//sortedPartners[idx];
                 
                 IntVector::iterator it = std::find(mainChain.begin(), mainChain.end(), partner);
                 size_t partnerPos = it - mainChain.begin();
@@ -428,6 +433,14 @@ namespace PmergeMe {
         if (losers.size() > winners.size()) {
             pendChain.push_back(losers.back());
         }
+
+#if defined(_PMM_ASSERT_TEST)
+        IntList::const_iterator pendIt = pendChain.begin();
+        for (IntList::const_iterator sortedIt2 = sortedWinners.begin(); sortedIt2 != sortedWinners.end(); ++sortedIt2) {
+            __myAssert(*sortedIt2 >= *pendIt);
+            std::advance(pendIt, 1);
+        }
+#endif 
     
         return pendChain;
     }
@@ -473,18 +486,9 @@ namespace PmergeMe {
     
         if (!pendChain.empty()) {
             IntList::const_iterator pendIt = pendChain.begin();
-            IntList::const_iterator partnerIt = sortedPartners.begin();
-            
             int firstLoser = *pendIt;
-            int firstPartner = *partnerIt;
-    
-            IntList::iterator mainIt = std::find(mainChain.begin(), mainChain.end(), firstPartner);
-            size_t partnerPos = std::distance(mainChain.begin(), mainIt);
-            
-            size_t pos = __binarySearchInsertionPositionInRange(mainChain, firstLoser, 0, partnerPos);
-            mainIt = mainChain.begin();
-            std::advance(mainIt, pos);
-            mainChain.insert(mainIt, firstLoser);
+
+            mainChain.insert(mainChain.begin(), firstLoser);
         }
     
         size_t pendingCount = pendChain.size();
@@ -513,7 +517,7 @@ namespace PmergeMe {
                 mainChain.insert(mainIt, loserVal);
             }
         }
-        
+
         return mainChain;
     }
 
@@ -524,11 +528,13 @@ namespace PmergeMe {
         IntVector temp = __fordJohnsonSortV(_nsInternalV);
         
         clock_t end = clock();
-        double elapsed = static_cast<double>(end - start);
+        _nsExternalTicksElapsedV = end - start;
         
         _nsInternalV = temp;
+
+#if defined(_PMM_ASSERT_TEST)
         PRINT("Vector Comparisons: " << _nsInternalCompCount) __FLUSH();
-        PRINT("Vector Time: " << elapsed << " ticks") __FLUSH();
+#endif
         _nsInternalCompCount = 0;
     }
 
@@ -538,11 +544,13 @@ namespace PmergeMe {
         IntList temp = __fordJohnsonSortL(_nsInternalL);
         
         clock_t end = clock();
-        double elapsed = static_cast<double>(end - start);
+        _nsExternalTicksElapsedL = end - start;
         
         _nsInternalL = temp;
+
+#if defined(_PMM_ASSERT_TEST)
         PRINT("List Comparisons: " << _nsInternalCompCount) __FLUSH();
-        PRINT("List Time: " << elapsed << " ticks") __FLUSH();
+#endif
         _nsInternalCompCount = 0;
     } 
 }
