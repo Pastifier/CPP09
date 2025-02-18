@@ -6,7 +6,7 @@ int main(int argc, char *argv[]) {
 	PmergeMe::runAllTests();
 	PRINT("Congratulations! All test cases have passed!") __FLUSH();
 #else
-	if (argc < 3) {
+	if (argc < 2) {
 		ERRLOG("Error: Not enough arguments") __ERRFLUSH();
 		ERRLOG("Usage:\n\tRPN x1 x2 ... xn") __ERRFLUSH();
 		return 2;
@@ -20,9 +20,10 @@ int main(int argc, char *argv[]) {
 	PRINT("Before: "); PmergeMe::printInternalV();
 
 	PmergeMe::mergeInsertionSortV();
+	PmergeMe::mergeInsertionSortL();
 
 	PRINT("After (vector): "); PmergeMe::printInternalV();
-	// PRINT("After (list): "); PmergeMe::printInternalL();
+	PRINT("After (list): "); PmergeMe::printInternalL();
 #endif
 	return 0;
 }

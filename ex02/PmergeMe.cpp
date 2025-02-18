@@ -3,8 +3,10 @@
 #include <sstream>
 #include <cstdlib>
 #include <exception>
+#include <ctime>
 #include <climits>
 #include <algorithm>
+#include <cassert>
 
 namespace PmergeMe {
     namespace {
@@ -266,6 +268,26 @@ namespace PmergeMe {
         return l;
     }
 
+    size_t __binarySearchInsertionPositionInRange(const IntList& lst, int value, size_t low, size_t high) {
+        size_t l = low;
+        size_t h = high;
+        
+        while (l < h) {
+            size_t mid = (l + h) / 2;
+            
+            IntList::const_iterator it = lst.begin();
+            std::advance(it, mid);
+            
+            if (*it < value) {
+                l = mid + 1;
+            } else {
+                h = mid;
+            }
+            ++_nsInternalCompCount;
+        }
+        return l;
+    }
+
     std::vector<size_t> __generateInsertionOrder(size_t n) {
         std::vector<size_t> jacobsthal;
         jacobsthal.push_back(1); // t1 = 1
@@ -282,15 +304,15 @@ namespace PmergeMe {
         }
         
         std::vector<size_t> order;
-        size_t current = 2; // pending position 1 is inserted separately
+        size_t current = 2;
         for (size_t i = 1; i < jacobsthal.size(); ++i) {
             size_t start = current;
             size_t end = jacobsthal[i]; // inclusive
 
             for (size_t j = end; j >= start; --j) {
                 order.push_back(j);
-                // if (j == start)
-                //     break;
+                if (j == start)
+                    break;
             }
             current = jacobsthal[i] + 1;
         }
@@ -304,14 +326,38 @@ namespace PmergeMe {
         return order;
     }
 
+    // 0 1 2 3 4
+    // x y z w a
+
+    // 0 1 2 3 4    0 1 2 3 4
+    // y z w x a    l o p q r
+    IntVector __extractCorrespondingLosers(const IntVector &winners, const IntVector &sortedWinners, const IntVector &losers) {
+        // winners: original winners in pairing order.
+        // sortedWinners: winners sorted recursively.
+        // losers: losers paired with winners (in the same order as winners).
+        IntVector pendChain;
+        pendChain.resize(sortedWinners.size());
+
+        for (size_t i = 0; i < sortedWinners.size(); ++i) {
+            size_t index = std::distance(winners.begin(),
+            std::find(winners.begin(), winners.end(), sortedWinners[i]));
+            pendChain[i] = losers[index];
+        }
+
+        if (losers.size() > winners.size()) {
+            pendChain.push_back(losers.back());
+        }
+
+        return pendChain;
+    }
+
     IntVector __fordJohnsonSortV(const IntVector& input) {
         int n = input.size();
-        if (n <= 1)
-            return input;
-
+        if (n == 1) return input;
+    
         IntVector winners;
         IntVector losers;
-        IntVector partnerValue;  // For each pending element, store its paired winner.
+        IntVector partnerValue;
         
         for (int i = 0; i + 1 < n; i += 2) {
             if (input[i] < input[i + 1]) {
@@ -324,45 +370,42 @@ namespace PmergeMe {
                 partnerValue.push_back(input[i]);
             }
             ++_nsInternalCompCount;
-        } if (n % 2 == 1) {
+        } if (n % 2 != 0) {
             losers.push_back(input[n - 1]);
-            partnerValue.push_back(std::numeric_limits<int>::max());
         }
         
         IntVector sortedWinners = __fordJohnsonSortV(winners);
         IntVector mainChain = sortedWinners;
+        
+        IntVector pendChain = __extractCorrespondingLosers(winners, sortedWinners, losers);
+        IntVector sortedPartners = __extractCorrespondingLosers(winners, sortedWinners, partnerValue);
+    
+        if (!pendChain.empty()) {
+            int firstLoser = pendChain[0];
+            int firstPartner = sortedPartners[0];
 
-        if (!losers.empty()) {
-            int firstLoser = losers[0];
-            int partner = partnerValue[0];
+            IntVector::iterator it = std::find(mainChain.begin(), mainChain.end(), firstPartner);
+            size_t partnerPos = it - mainChain.begin();
 
-            int partnerPos = 0;
-            {
-                IntVector::const_iterator it = std::lower_bound(mainChain.begin(), mainChain.end(), partner);
-                partnerPos = it - mainChain.begin();
-            }
-            int pos = __binarySearchInsertionPositionInRange(mainChain, firstLoser, 0, partnerPos);
+            size_t pos = __binarySearchInsertionPositionInRange(mainChain, firstLoser, 0, partnerPos);
             mainChain.insert(mainChain.begin() + pos, firstLoser);
         }
-
-        
-        int pendingCount = losers.size();
+    
+        size_t pendingCount = pendChain.size();
         if (pendingCount > 1) {
             std::vector<size_t> insOrder = __generateInsertionOrder(pendingCount);
-
-            for (int k = 0; k < static_cast<int>(insOrder.size()); ++k) {
-                int idx = insOrder[k] - 1;
-                if (idx == 0)
-                    continue;
-                int loserVal = losers[idx];
-                int partner = partnerValue[idx];
-
-                int partnerPos = 0;
-                {
-                    IntVector::const_iterator it = std::lower_bound(mainChain.begin(), mainChain.end(), partner);
-                    partnerPos = it - mainChain.begin();
-                }
-                int pos = __binarySearchInsertionPositionInRange(mainChain, loserVal, 0, partnerPos);
+    
+            for (size_t k = 0; k < insOrder.size(); ++k) {
+                size_t idx = insOrder[k] - 1;
+                if (idx == 0) continue;
+                
+                int loserVal = pendChain[idx];
+                int partner = sortedPartners[idx];
+                
+                IntVector::iterator it = std::find(mainChain.begin(), mainChain.end(), partner);
+                size_t partnerPos = it - mainChain.begin();
+                
+                size_t pos = __binarySearchInsertionPositionInRange(mainChain, loserVal, 0, partnerPos);
                 mainChain.insert(mainChain.begin() + pos, loserVal);
             }
         }
@@ -370,12 +413,136 @@ namespace PmergeMe {
         return mainChain;
     }
 
+    IntList __extractCorrespondingLosers(const IntList& winners, const IntList& sortedWinners, const IntList& losers) {
+        IntList pendChain;
+        
+        for (IntList::const_iterator sortedIt = sortedWinners.begin(); sortedIt != sortedWinners.end(); ++sortedIt) {
+            IntList::const_iterator winnerIt = std::find(winners.begin(), winners.end(), *sortedIt);
+            size_t index = std::distance(winners.begin(), winnerIt);
+            
+            IntList::const_iterator loserIt = losers.begin();
+            std::advance(loserIt, index);
+            pendChain.push_back(*loserIt);
+        }
+    
+        if (losers.size() > winners.size()) {
+            pendChain.push_back(losers.back());
+        }
+    
+        return pendChain;
+    }
+    
+    IntList __fordJohnsonSortL(const IntList& input) {
+        size_t n = input.size();
+        if (n == 1)
+            return input;
+    
+        IntList winners;
+        IntList losers;
+        IntList partnerValue;
+        
+        IntList::const_iterator it = input.begin();
+        while (it != input.end() && std::distance(it, input.end()) >= 2) {
+            int first = *it;
+            ++it;
+            int second = *it;
+            ++it;
+            
+            if (first < second) {
+                winners.push_back(second);
+                losers.push_back(first);
+                partnerValue.push_back(second);
+            } else {
+                winners.push_back(first);
+                losers.push_back(second);
+                partnerValue.push_back(first);
+            }
+            ++_nsInternalCompCount;
+        }
+        
+        if (it != input.end()) {
+            losers.push_back(*it);
+            partnerValue.push_back(std::numeric_limits<int>::max());
+        }
+        
+        IntList sortedWinners = __fordJohnsonSortL(winners);
+        IntList mainChain = sortedWinners;
+    
+        IntList pendChain = __extractCorrespondingLosers(winners, sortedWinners, losers);
+        IntList sortedPartners = __extractCorrespondingLosers(winners, sortedWinners, partnerValue);
+    
+        if (!pendChain.empty()) {
+            IntList::const_iterator pendIt = pendChain.begin();
+            IntList::const_iterator partnerIt = sortedPartners.begin();
+            
+            int firstLoser = *pendIt;
+            int firstPartner = *partnerIt;
+    
+            IntList::iterator mainIt = std::find(mainChain.begin(), mainChain.end(), firstPartner);
+            size_t partnerPos = std::distance(mainChain.begin(), mainIt);
+            
+            size_t pos = __binarySearchInsertionPositionInRange(mainChain, firstLoser, 0, partnerPos);
+            mainIt = mainChain.begin();
+            std::advance(mainIt, pos);
+            mainChain.insert(mainIt, firstLoser);
+        }
+    
+        size_t pendingCount = pendChain.size();
+        if (pendingCount > 1) {
+            std::vector<size_t> insOrder = __generateInsertionOrder(pendingCount);
+    
+            for (size_t k = 0; k < insOrder.size(); ++k) {
+                size_t idx = insOrder[k] - 1;
+                if (idx == 0)
+                    continue;
+                    
+                IntList::const_iterator pendIt = pendChain.begin();
+                IntList::const_iterator partnerIt = sortedPartners.begin();
+                std::advance(pendIt, idx);
+                std::advance(partnerIt, idx);
+                
+                int loserVal = *pendIt;
+                int partner = *partnerIt;
+    
+                IntList::iterator mainIt = std::find(mainChain.begin(), mainChain.end(), partner);
+                size_t partnerPos = std::distance(mainChain.begin(), mainIt);
+                
+                size_t pos = __binarySearchInsertionPositionInRange(mainChain, loserVal, 0, partnerPos);
+                mainIt = mainChain.begin();
+                std::advance(mainIt, pos);
+                mainChain.insert(mainIt, loserVal);
+            }
+        }
+        
+        return mainChain;
+    }
 
 
     void mergeInsertionSortV(void) {
+        clock_t start = clock();
+        
         IntVector temp = __fordJohnsonSortV(_nsInternalV);
+        
+        clock_t end = clock();
+        double elapsed = static_cast<double>(end - start);
+        
         _nsInternalV = temp;
         PRINT("Vector Comparisons: " << _nsInternalCompCount) __FLUSH();
+        PRINT("Vector Time: " << elapsed << " ticks") __FLUSH();
         _nsInternalCompCount = 0;
     }
+
+    void mergeInsertionSortL(void) {
+        clock_t start = clock();
+        
+        IntList temp = __fordJohnsonSortL(_nsInternalL);
+        
+        clock_t end = clock();
+        double elapsed = static_cast<double>(end - start);
+        
+        _nsInternalL = temp;
+        PRINT("List Comparisons: " << _nsInternalCompCount) __FLUSH();
+        PRINT("List Time: " << elapsed << " ticks") __FLUSH();
+        _nsInternalCompCount = 0;
+    } 
 }

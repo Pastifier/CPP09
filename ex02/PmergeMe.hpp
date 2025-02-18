@@ -49,4 +49,5 @@ namespace PmergeMe {
     bool runAllTests(void) _PMM_PARSING_ONLY;
 
     void mergeInsertionSortV(void);
+    void mergeInsertionSortL(void);
 }
