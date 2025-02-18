@@ -22,8 +22,15 @@ int main(int argc, char *argv[]) {
 	PmergeMe::mergeInsertionSortV();
 	PmergeMe::mergeInsertionSortL();
 
-	PRINT("After (vector): "); PmergeMe::printInternalV();
-	PRINT("After (list): "); PmergeMe::printInternalL();
+#	if defined(_PMM_ASSERT_TEST)
+		PRINT("After (vector): "); PmergeMe::printInternalV();
+		PRINT("After (list): "); PmergeMe::printInternalL();
+#	else
+		PRINT("After: "); PmergeMe::printInternalV();
+		PmergeMe::printTimeV();
+		PmergeMe::printTimeL();
+#	endif
+
 #endif
 	return 0;
 }

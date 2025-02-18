@@ -9,13 +9,13 @@
 #include <cassert>
 
 namespace PmergeMe {
-    clock_t _nsExternalTicksElapsedV;
-    clock_t _nsExternalTicksElapsedL;
-
     namespace {
         IntVector _nsInternalV;
         IntList _nsInternalL;
         size_t _nsInternalCompCount = 0;
+
+        clock_t _nsInternalElapsedTicksV = 0;
+        clock_t _nsInternalElapsedTicksL = 0;
 
         enum e_error_codes {
             NO_ERROR,
@@ -388,7 +388,6 @@ namespace PmergeMe {
         IntVector mainChain = sortedWinners;
         
         IntVector pendChain = __extractCorrespondingLosers(winners, sortedWinners, losers);
-        // IntVector sortedPartners = __extractCorrespondingLosers(winners, sortedWinners, partnerValue);
     
         if (!pendChain.empty()) {
             int firstLoser = pendChain[0];
@@ -405,7 +404,7 @@ namespace PmergeMe {
                 if (idx == 0) continue;
                 
                 int loserVal = pendChain[idx];
-                int partner = sortedWinners[idx];//sortedPartners[idx];
+                int partner = sortedWinners[idx];
                 
                 IntVector::iterator it = std::find(mainChain.begin(), mainChain.end(), partner);
                 size_t partnerPos = it - mainChain.begin();
@@ -501,7 +500,7 @@ namespace PmergeMe {
                     continue;
                     
                 IntList::const_iterator pendIt = pendChain.begin();
-                IntList::const_iterator partnerIt = sortedPartners.begin();
+                IntList::const_iterator partnerIt = sortedPartners.begin(); ////
                 std::advance(pendIt, idx);
                 std::advance(partnerIt, idx);
                 
@@ -528,7 +527,7 @@ namespace PmergeMe {
         IntVector temp = __fordJohnsonSortV(_nsInternalV);
         
         clock_t end = clock();
-        _nsExternalTicksElapsedV = end - start;
+        _nsInternalElapsedTicksV = end - start;
         
         _nsInternalV = temp;
 
@@ -544,7 +543,7 @@ namespace PmergeMe {
         IntList temp = __fordJohnsonSortL(_nsInternalL);
         
         clock_t end = clock();
-        _nsExternalTicksElapsedL = end - start;
+        _nsInternalElapsedTicksL = end - start;
         
         _nsInternalL = temp;
 
@@ -553,4 +552,12 @@ namespace PmergeMe {
 #endif
         _nsInternalCompCount = 0;
     } 
+
+    void printTimeV(void) {
+		PRINT("Time to process a range of " << _nsInternalV.size() << " elements with std::vector : " << _nsInternalElapsedTicksV << " ticks.") __FLUSH();
+    }
+
+    void printTimeL(void) {
+		PRINT("Time to process a range of " << _nsInternalL.size() << " elements with std::list : " << _nsInternalElapsedTicksL << " ticks.") __FLUSH();
+    }
 }

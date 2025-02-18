@@ -50,4 +50,7 @@ namespace PmergeMe {
 
     void mergeInsertionSortV(void);
     void mergeInsertionSortL(void);
+
+    void printTimeV(void);
+    void printTimeL(void);
 }
