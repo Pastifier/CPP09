@@ -46,10 +46,10 @@ namespace PmergeMe {
                     return false;
                 }
 
-                // if (std::find(_nsInternalV.begin(), _nsInternalV.end(), toAppend) != _nsInternalV.end()) { // Cache goes brrrrrr
-                //     errorCode = DUPLICATE_VALUE;
-                //     return false;
-                // }
+                if (std::find(_nsInternalV.begin(), _nsInternalV.end(), toAppend) != _nsInternalV.end()) { // Cache goes brrrrrr
+                    errorCode = DUPLICATE_VALUE;
+                    return false;
+                }
 
                 _nsInternalL.push_back(toAppend);
                 _nsInternalV.push_back(toAppend);
@@ -240,9 +240,9 @@ namespace PmergeMe {
                     case NEGATIVE_NUMBER:
                         ERRLOG("Error: `" << token << "`: Only accepting positive integers.") __ERRFLUSH();
                         break;
-                    // case DUPLICATE_VALUE:
-                    //     ERRLOG("Error: `" << token << "` already exists and is not allowed.") __ERRFLUSH();
-                    //     break;
+                    case DUPLICATE_VALUE:
+                        ERRLOG("Error: `" << token << "` already exists and is not allowed.") __ERRFLUSH();
+                        break;
                     default:
                         ERRLOG("Status: Irrecoverable error encountered.") __ERRFLUSH();
                 }
