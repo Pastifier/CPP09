@@ -1,6 +1,6 @@
 #include "BitcoinExchange.hpp"
 
-bool BitcoinExchange::isValidDate(const std::string& date) {
+bool BitcoinExchange::isValidDate_impl(std::string const& date) {
     if (date.empty()) return false;
     if (date.length() != 10) return false;
     if (date[4] != '-' || date[7] != '-') return false;
@@ -37,7 +37,7 @@ enum e_error_codes {
     LEADING_ZEROES
 };
 
-bool BitcoinExchange::isValidValue(const std::string& value, double& result, int& errorCode) {
+bool BitcoinExchange::isValidValue_impl(std::string const& value, double& result, int& errorCode) {
     errorCode = 0;
 
     if (value.empty()) {
@@ -67,7 +67,7 @@ bool BitcoinExchange::isValidValue(const std::string& value, double& result, int
     return true;
 }
 
-bool BitcoinExchange::loadDatabase(const std::string& filename) {
+bool BitcoinExchange::loadDatabase(std::string const& filename) {
 
     std::ifstream file(filename.c_str());
     if (!file.is_open()) return false;
@@ -87,7 +87,7 @@ bool BitcoinExchange::loadDatabase(const std::string& filename) {
         if (!std::getline(iss, date, ',')) continue;
         if (!std::getline(iss, value)) continue;
 
-        if (isValidDate(date)) {
+        if (isValidDate_impl(date)) {
             double rate;
             std::istringstream middleMan(value);
             middleMan >> rate;
@@ -116,58 +116,36 @@ void BitcoinExchange::processInput(const std::string& filename) {
             continue;
         }
 
-        size_t pipeCount = 0;
-        for (std::string::size_type i = 0; i < line.length(); ++i) {
-            if (line[i] == '|') pipeCount++;
-        }
-        if (pipeCount != 1) {
+        size_t pipePos = line.find('|');
+        if (pipePos == std::string::npos) {
             std::cerr << "Error: bad input => " << line << std::endl;
             continue;
         }
 
-        std::istringstream iss(line);
-        std::string date, value;
+        std::string date = line.substr(0, pipePos);
+        std::string value = line.substr(pipePos + 1);
 
-        if (!std::getline(iss, date, '|')) {
-            std::cerr << "Error: bad input => " << line << std::endl;
-            continue;
-        }
-
-        if (!std::getline(iss, value)) {
-            std::cerr << "Error: bad input => " << line << std::endl;
-            continue;
-        }
-
-        std::string::size_type notwhite = date.find_first_not_of(" \t");
-        if (notwhite == std::string::npos) {
+        date = trimWhitespace_impl(date);
+        value = trimWhitespace_impl(value);
+        
+        if (date.empty()) {
             std::cerr << "Error: empty date field." << std::endl;
             continue;
         }
-        date.erase(0, notwhite);
-        notwhite = date.find_last_not_of(" \t");
-        if (notwhite != std::string::npos) {
-            date.erase(notwhite + 1);
-        }
-
-        notwhite = value.find_first_not_of(" \t");
-        if (notwhite == std::string::npos) {
+        
+        if (value.empty()) {
             std::cerr << "Error: empty value field." << std::endl;
             continue;
         }
-        value.erase(0, notwhite);
-        notwhite = value.find_last_not_of(" \t");
-        if (notwhite != std::string::npos) {
-            value.erase(notwhite + 1);
-        }
 
-        if (!isValidDate(date)) {
+        if (!isValidDate_impl(date)) {
             std::cerr << "Error: bad input => " << date << std::endl;
             continue;
         }
 
         double amount;
         int errorCode;
-        if (!isValidValue(value, amount, errorCode)) {
+        if (!isValidValue_impl(value, amount, errorCode)) {
             switch (errorCode) {
                 case EMPTY_STRING:
                     std::cout << "Error: empty value." << std::endl;
@@ -200,4 +178,14 @@ void BitcoinExchange::processInput(const std::string& filename) {
         double result = amount * it->second;
         std::cout << date << " => " << amount << " = " << result << std::endl;
     }
+}
+
+std::string BitcoinExchange::trimWhitespace_impl(std::string const& str) {
+    size_t first = str.find_first_not_of(" \t");
+
+    if (first == std::string::npos)
+        return "";
+    
+    size_t last = str.find_last_not_of(" \t");
+    return str.substr(first, last - first + 1);
 }

@@ -13,11 +13,13 @@ class BitcoinExchange {
 private:
     std::map<std::string, double> database;
 
-    bool isValidDate(const std::string& date);
+    bool isValidDate_impl(std::string const& date);
 
-    bool isValidValue(const std::string& value, double& result, int& errorCode);
+    bool isValidValue_impl(std::string const& value, double& result, int& errorCode);
+
+    std::string trimWhitespace_impl(std::string const& str);
 
 public:
-    bool loadDatabase(const std::string& filename);
-    void processInput(const std::string& filename);
+    bool loadDatabase(std::string const& filename);
+    void processInput(std::string const& filename);
 };
