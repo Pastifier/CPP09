@@ -128,20 +128,19 @@ bool BitcoinExchange::loadDatabase(const std::string& filename) {
 
     while (std::getline(file, line)) {
         if (line.empty()) continue;
-        
+
         std::istringstream iss(line);
         std::string date;
         std::string value;
-        
+
         if (!std::getline(iss, date, ',')) continue;
         if (!std::getline(iss, value)) continue;
-        
-        int errorCode;
+
         if (isValidDate(date)) {
             double rate;
-            if (isValidValue(value, rate, errorCode)) {
-                database[date] = rate;
-            }
+            std::istringstream middleMan(value);
+            middleMan >> rate;
+            database[date] = rate;
         }
     }
     return !database.empty();
@@ -177,17 +176,17 @@ void BitcoinExchange::processInput(const std::string& filename) {
 
         std::istringstream iss(line);
         std::string date, value;
-        
+
         if (!std::getline(iss, date, '|')) {
             std::cerr << "Error: bad input => " << line << std::endl;
             continue;
         }
-        
+
         if (!std::getline(iss, value)) {
             std::cerr << "Error: bad input => " << line << std::endl;
             continue;
         }
-        
+
         std::string::size_type notwhite = date.find_first_not_of(" \t");
         if (notwhite == std::string::npos) {
             std::cerr << "Error: empty date field." << std::endl;
@@ -198,7 +197,7 @@ void BitcoinExchange::processInput(const std::string& filename) {
         if (notwhite != std::string::npos) {
             date.erase(notwhite + 1);
         }
-        
+
         notwhite = value.find_first_not_of(" \t");
         if (notwhite == std::string::npos) {
             std::cerr << "Error: empty value field." << std::endl;
@@ -247,6 +246,7 @@ void BitcoinExchange::processInput(const std::string& filename) {
             continue;
         }
         --it;
+        std::cout << "DATE: " << it->first << std::endl;
         double result = amount * it->second;
         std::cout << date << " => " << amount << " = " << result << std::endl;
     }
