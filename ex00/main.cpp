@@ -14,5 +14,6 @@ int main(int argc, char* argv[]) {
     }
 
     exchange.processInput(argv[1]);
+    (void)argv;
     return 0;
 }
