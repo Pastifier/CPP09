@@ -4,31 +4,26 @@ bool BitcoinExchange::isValidDate(const std::string& date) {
     if (date.empty()) return false;
     if (date.length() != 10) return false;
     if (date[4] != '-' || date[7] != '-') return false;
-
-    for (int i = 0; i < 10; i++) {
-        if (i != 4 && i != 7) {
-            if (!isdigit(date[i])) return false;
-        }
-    }
+    if (date.find_first_not_of("0123456789-") != std::string::npos) return false;
 
     std::istringstream iss(date);
     int year, month, day;
     char dash1, dash2;
-    
+
     iss >> year >> dash1 >> month >> dash2 >> day;
-    
+
     if (iss.fail() || !iss.eof()) return false;
-    
+
     if (year < 0) return false;
     if (month < 1 || month > 12) return false;
     if (day < 1 || day > 31) return false;
-    
+
     if ((month == 4 || month == 6 || month == 9 || month == 11) && day > 30) return false;
     if (month == 2) {
         bool isLeap = (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
         if (day > (isLeap ? 29 : 28)) return false;
     }
-    
+
     return true;
 }
 
@@ -44,75 +39,31 @@ enum e_error_codes {
 
 bool BitcoinExchange::isValidValue(const std::string& value, double& result, int& errorCode) {
     errorCode = 0;
+
     if (value.empty()) {
         errorCode = 1;
         return false;
     }
 
-    for (std::string::size_type i = 0; i < value.length(); ++i) {
-        if (!isdigit(value[i]) && value[i] != '.' && value[i] != '-') {
-            errorCode = 3;
-            return false;
-        }
-    }
+    std::istringstream iss(value);
 
-    bool hasDecimal = false;
-    bool hasDigit = false;
-    int decimalPosition = -1;
-    
-    for (std::string::size_type i = 0; i < value.length(); ++i) {
-        char c = value[i];
-        
-        if (c == '.') {
-            if (hasDecimal || i == 0 || i == value.length() - 1) {
-                errorCode = 2;
-                return false;
-            }
-            hasDecimal = true;
-            decimalPosition = i;
-        }
-        
-        if (c == '-') {
-            if (i != 0) {
-                errorCode = 2;
-                return false;
-            }
-        }
-        
-        if (isdigit(c)) hasDigit = true;
-    }
-    
-    if (!hasDigit) {
+    iss >> result;
+
+    if (iss.fail() || !iss.eof()) {
         errorCode = 2;
         return false;
     }
-    
-    if (value.length() > 1 && value[0] == '0' && 
-        (decimalPosition != 1 || decimalPosition == -1)) {
-        errorCode = 6;
-        return false;
-    }
 
-    char* endPtr;
-    const char* str = value.c_str();
-    
-    result = strtod(str, &endPtr);
-    
-    if (*endPtr != '\0' || endPtr == str) {
-        errorCode = 2;
-        return false;
-    }
-    
     if (result < 0) {
         errorCode = 4;
         return false;
     }
-    
+
     if (result > 1000) {
         errorCode = 5;
         return false;
     }
-    
+
     return true;
 }
 
@@ -246,7 +197,6 @@ void BitcoinExchange::processInput(const std::string& filename) {
             continue;
         }
         --it;
-        std::cout << "DATE: " << it->first << std::endl;
         double result = amount * it->second;
         std::cout << date << " => " << amount << " = " << result << std::endl;
     }
