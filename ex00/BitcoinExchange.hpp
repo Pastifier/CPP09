@@ -10,6 +10,12 @@
 #include <iomanip>
 
 class BitcoinExchange {
+public:
+    BitcoinExchange();
+    ~BitcoinExchange();
+
+    bool loadDatabase(std::string const& filename);
+    void processInput(std::string const& filename);
 private:
     std::map<std::string, double> database;
 
@@ -19,7 +25,7 @@ private:
 
     std::string trimWhitespace_impl(std::string const& str);
 
-public:
-    bool loadDatabase(std::string const& filename);
-    void processInput(std::string const& filename);
+    BitcoinExchange(const BitcoinExchange& other);
+    BitcoinExchange& operator=(const BitcoinExchange& rhs);
+
 };

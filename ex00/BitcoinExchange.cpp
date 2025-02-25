@@ -1,5 +1,8 @@
 #include "BitcoinExchange.hpp"
 
+BitcoinExchange::BitcoinExchange() {}
+BitcoinExchange::~BitcoinExchange() {}
+
 bool BitcoinExchange::isValidDate_impl(std::string const& date) {
     if (date.empty()) return false;
     if (date.length() != 10) return false;
